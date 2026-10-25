@@ -1,0 +1,207 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+
+  "title": {
+    "text": "Which regions have higher subject shares?",
+    "subtitle": [
+      "Selected subject as a percentage of all recorded Unit 4 subject enrolments",
+      "Queensland education regions in 2025"
+    ],
+    "anchor": "start",
+    "fontSize": 18,
+    "subtitleFontSize": 13
+  },
+
+  "width": 700,
+  "height": 620,
+
+  "projection": {
+    "type": "conicEqualArea",
+    "parallels": [-10, -28],
+    "rotate": [-145, 0, 0]
+  },
+
+  "params": [
+    {
+      "name": "selectedSubject",
+      "value": "Biology",
+      "bind": {
+        "input": "select",
+        "name": "Subject: ",
+        "options": [
+          "English",
+          "GeneralMathematics",
+          "EssentialEnglish",
+          "EssentialMathematics",
+          "Biology",
+          "MathematicalMethods",
+          "Chemistry",
+          "SportRecreation",
+          "Physics",
+          "ReligionEthics"
+        ],
+        "labels": [
+          "English",
+          "General Mathematics",
+          "Essential English",
+          "Essential Mathematics",
+          "Biology",
+          "Mathematical Methods",
+          "Chemistry",
+          "Sport and Recreation",
+          "Physics",
+          "Religion and Ethics"
+        ]
+      }
+    }
+  ],
+
+  "data": {
+    "url": "../data/queensland_regions.json",
+    "format": {
+      "type": "json",
+      "property": "features"
+    }
+  },
+
+  "transform": [
+    {
+      "calculate": "datum.properties.name",
+      "as": "Region"
+    },
+    {
+      "lookup": "Region",
+      "from": {
+        "data": {
+          "url": "../data/Chart11_region_subjects.csv",
+          "format": {
+            "type": "csv"
+          }
+        },
+        "key": "Region",
+        "fields": [
+          "AllSubjectEnrolments",
+          "EnglishEnrolment",
+          "EnglishShare",
+          "GeneralMathematicsEnrolment",
+          "GeneralMathematicsShare",
+          "EssentialEnglishEnrolment",
+          "EssentialEnglishShare",
+          "EssentialMathematicsEnrolment",
+          "EssentialMathematicsShare",
+          "BiologyEnrolment",
+          "BiologyShare",
+          "MathematicalMethodsEnrolment",
+          "MathematicalMethodsShare",
+          "ChemistryEnrolment",
+          "ChemistryShare",
+          "SportRecreationEnrolment",
+          "SportRecreationShare",
+          "PhysicsEnrolment",
+          "PhysicsShare",
+          "ReligionEthicsEnrolment",
+          "ReligionEthicsShare"
+        ]
+      }
+    },
+    {
+      "calculate": "toNumber(datum[selectedSubject + 'Enrolment'])",
+      "as": "Enrolment"
+    },
+    {
+      "calculate": "toNumber(datum[selectedSubject + 'Share']) * 100",
+      "as": "SubjectSharePercent"
+    },
+    {
+      "filter": "isValid(datum.SubjectSharePercent)"
+    }
+  ],
+
+  "layer": [
+    {
+      "mark": {
+        "type": "geoshape",
+        "stroke": "white",
+        "strokeWidth": 1
+      },
+
+      "encoding": {
+        "color": {
+          "field": "SubjectSharePercent",
+          "type": "quantitative",
+          "title": "Subject share (%)",
+          "scale": {
+            "scheme": "purples"
+          },
+          "legend": {
+            "orient": "bottom",
+            "direction": "horizontal",
+            "format": ".1f",
+            "gradientLength": 300,
+            "gradientThickness": 14,
+            "tickCount": 5,
+            "labelFontSize": 11,
+            "titleFontSize": 12
+          }
+        },
+
+        "tooltip": [
+          {
+            "field": "Region",
+            "type": "nominal",
+            "title": "Education region"
+          },
+          {
+            "field": "Enrolment",
+            "type": "quantitative",
+            "title": "Selected subject enrolments",
+            "format": ","
+          },
+          {
+            "field": "AllSubjectEnrolments",
+            "type": "quantitative",
+            "title": "All subject enrolments",
+            "format": ","
+          },
+          {
+            "field": "SubjectSharePercent",
+            "type": "quantitative",
+            "title": "Subject share (%)",
+            "format": ".1f"
+          }
+        ]
+      }
+    },
+
+    {
+      "transform": [
+        {
+          "filter": "selectedSubject == 'Biology' && datum.Region == 'North Queensland'"
+        }
+      ],
+
+      "mark": {
+        "type": "text",
+        "fontSize": 12,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "align": "left"
+      },
+
+      "encoding": {
+        "x": {"value": 430},
+        "y": {"value": 55},
+        "text": {
+          "value": "North Queensland has the highest Biology share"
+        }
+      }
+    }
+  ],
+
+  "config": {
+    "background": "white",
+    "view": {
+      "stroke": null
+    }
+  }
+}
